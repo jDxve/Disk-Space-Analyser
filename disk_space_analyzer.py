@@ -14,7 +14,7 @@ import platform
 class DiskSpaceAnalyzer:
     def __init__(self, root):
         self.root = root
-        self.root.title("🚀 Advanced Disk Space Analyzer - Pro Edition")
+        self.root.title("DiskTective")
         self.root.geometry("1200x800")
 
         self.scanning = False
@@ -22,9 +22,8 @@ class DiskSpaceAnalyzer:
         self.files_data = []
         self.folders_data = []
         self.duplicates_data = []
-        self.age_categories_data = {}  # Store age analysis results
+        self.age_categories_data = {}
 
-        # Create trash/recycle bin folder
         self.trash_folder = os.path.join(os.path.expanduser("~"), ".disk_analyzer_trash")
         self.trash_metadata = os.path.join(self.trash_folder, "trash_metadata.json")
         self.ensure_trash_folder()
@@ -32,21 +31,18 @@ class DiskSpaceAnalyzer:
         self.setup_ui()
 
     def setup_ui(self):
-        # Title with gradient effect
         title_frame = ttk.Frame(self.root, padding="10")
         title_frame.pack(fill=tk.X)
 
-        ttk.Label(title_frame, text="🚀 Advanced Disk Space Analyzer",
+        ttk.Label(title_frame, text="DiskTective",
                   font=("Arial", 18, "bold")).pack(side=tk.LEFT)
 
-        ttk.Label(title_frame, text="Pro Edition",
-                  font=("Arial", 10, "italic"), foreground="blue").pack(side=tk.LEFT, padx=10)
+       # ttk.Label(title_frame, text="Pro Edition",
+                 # font=("Arial", 10, "italic"), foreground="blue").pack(side=tk.LEFT, padx=10)
 
-        # Control Panel
-        control_frame = ttk.LabelFrame(self.root, text="⚙️ Scan Settings", padding="15")
+        control_frame = ttk.LabelFrame(self.root, text="Scan Settings", padding="15")
         control_frame.pack(fill=tk.X, padx=10, pady=10)
 
-        # Path selection
         path_frame = ttk.Frame(control_frame)
         path_frame.pack(fill=tk.X, pady=5)
 
@@ -56,91 +52,78 @@ class DiskSpaceAnalyzer:
         self.path_entry.pack(side=tk.LEFT, padx=5, fill=tk.X, expand=True)
         self.path_entry.insert(0, self.current_path)
 
-        ttk.Button(path_frame, text="📁 Browse", command=self.browse_folder, width=12).pack(side=tk.LEFT, padx=5)
+        ttk.Button(path_frame, text="Browse", command=self.browse_folder, width=12).pack(side=tk.LEFT, padx=5)
 
-        # Quick scan buttons
         quick_frame = ttk.Frame(control_frame)
         quick_frame.pack(fill=tk.X, pady=10)
 
         ttk.Label(quick_frame, text="Quick Scan:", font=("Arial", 10)).pack(side=tk.LEFT, padx=(0, 10))
 
-        ttk.Button(quick_frame, text="🏠 Home",
+        ttk.Button(quick_frame, text="Home",
                    command=lambda: self.set_path(os.path.expanduser("~")), width=12).pack(side=tk.LEFT, padx=3)
-        ttk.Button(quick_frame, text="📥 Downloads",
+        ttk.Button(quick_frame, text="Downloads",
                    command=lambda: self.set_path(os.path.join(os.path.expanduser("~"), "Downloads")), width=12).pack(
             side=tk.LEFT, padx=3)
-        ttk.Button(quick_frame, text="🖼️ Documents",
+        ttk.Button(quick_frame, text="Documents",
                    command=lambda: self.set_path(os.path.join(os.path.expanduser("~"), "Documents")), width=12).pack(
             side=tk.LEFT, padx=3)
-        ttk.Button(quick_frame, text="🖥️ Desktop",
+        ttk.Button(quick_frame, text="Desktop",
                    command=lambda: self.set_path(os.path.join(os.path.expanduser("~"), "Desktop")), width=12).pack(
             side=tk.LEFT, padx=3)
 
-        # Scan control
         scan_frame = ttk.Frame(control_frame)
         scan_frame.pack(fill=tk.X, pady=5)
 
-        self.scan_btn = ttk.Button(scan_frame, text="🔍 Deep Scan", command=self.start_scan, width=20)
+        self.scan_btn = ttk.Button(scan_frame, text="Deep Scan", command=self.start_scan, width=20)
         self.scan_btn.pack(side=tk.LEFT, padx=5)
 
-        self.stop_btn = ttk.Button(scan_frame, text="⏹ Stop", command=self.stop_scan, width=15, state=tk.DISABLED)
+        self.stop_btn = ttk.Button(scan_frame, text="Stop", command=self.stop_scan, width=15, state=tk.DISABLED)
         self.stop_btn.pack(side=tk.LEFT, padx=5)
 
-        ttk.Button(scan_frame, text="🔎 Find Duplicates", command=self.find_duplicates, width=18).pack(side=tk.LEFT,
-                                                                                                      padx=5)
+        ttk.Button(scan_frame, text="Find Duplicates", command=self.find_duplicates, width=18).pack(side=tk.LEFT,
+                                                                                                    padx=5)
 
         self.status_label = ttk.Label(scan_frame, text="Ready to scan", font=("Arial", 10))
         self.status_label.pack(side=tk.LEFT, padx=20)
 
-        # Progress bar
         self.progress = ttk.Progressbar(control_frame, mode='indeterminate')
         self.progress.pack(fill=tk.X, pady=(10, 0))
 
-        # Results Notebook with unique tabs
         self.notebook = ttk.Notebook(self.root)
         self.notebook.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
-        # Tab 1: Disk Health - Overall System
         disk_health_frame = ttk.Frame(self.notebook)
-        self.notebook.add(disk_health_frame, text="💿 Disk Health")
+        self.notebook.add(disk_health_frame, text="Disk Health")
         self.setup_disk_health_tab(disk_health_frame)
 
-        # Tab 2: Folder Dashboard - Current Scan
         dashboard_frame = ttk.Frame(self.notebook)
-        self.notebook.add(dashboard_frame, text="📊 Folder Overview")
+        self.notebook.add(dashboard_frame, text="Folder Overview")
         self.setup_folder_dashboard_tab(dashboard_frame)
 
-        # Tab 3: Duplicate Finder
         duplicates_frame = ttk.Frame(self.notebook)
-        self.notebook.add(duplicates_frame, text="👯 Duplicates")
+        self.notebook.add(duplicates_frame, text="Duplicates")
         self.setup_duplicates_tab(duplicates_frame)
 
-        # Tab 4: File Age Analysis
         age_frame = ttk.Frame(self.notebook)
-        self.notebook.add(age_frame, text="⏰ File Age")
+        self.notebook.add(age_frame, text="File Age")
         self.setup_age_tab(age_frame)
 
-        # Tab 5: Largest Files
         files_frame = ttk.Frame(self.notebook)
-        self.notebook.add(files_frame, text="📄 Large Files")
+        self.notebook.add(files_frame, text="Large Files")
         self.setup_files_tab(files_frame)
 
-        # Tab 6: Largest Folders
         folders_frame = ttk.Frame(self.notebook)
-        self.notebook.add(folders_frame, text="📁 Folders")
+        self.notebook.add(folders_frame, text="Folders")
         self.setup_folders_tab(folders_frame)
 
-        # Tab 7: File Types
         types_frame = ttk.Frame(self.notebook)
-        self.notebook.add(types_frame, text="📋 File Types")
+        self.notebook.add(types_frame, text="File Types")
         self.setup_types_tab(types_frame)
 
-        # Tab 8: Recycle Bin
         trash_frame = ttk.Frame(self.notebook)
-        self.notebook.add(trash_frame, text="🗑️ Recycle Bin")
+        self.notebook.add(trash_frame, text="Recycle Bin")
         self.setup_trash_tab(trash_frame)
 
-        # Bottom stats with enhanced info
         stats_frame = ttk.Frame(self.root, padding="10")
         stats_frame.pack(fill=tk.X)
 
@@ -148,22 +131,18 @@ class DiskSpaceAnalyzer:
         self.stats_label.pack()
 
     def setup_disk_health_tab(self, parent):
-        """Overall disk health dashboard - Shows entire disk stats"""
-        # Header
         header_frame = ttk.Frame(parent, padding="15")
         header_frame.pack(fill=tk.X)
 
-        ttk.Label(header_frame, text="💿 Overall Disk Health",
+        ttk.Label(header_frame, text="Overall Disk Health",
                   font=("Arial", 14, "bold")).pack(anchor=tk.W)
         ttk.Label(header_frame, text="System-wide disk usage and health monitoring",
                   font=("Arial", 9), foreground="gray").pack(anchor=tk.W)
 
-        # Main content
         content_frame = ttk.Frame(parent, padding="10")
         content_frame.pack(fill=tk.BOTH, expand=True)
 
-        # Disk info
-        disk_frame = ttk.LabelFrame(content_frame, text="💾 Disk Information", padding="15")
+        disk_frame = ttk.LabelFrame(content_frame, text="Disk Information", padding="15")
         disk_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
 
         self.disk_total_label = ttk.Label(disk_frame, text="Total: -", font=("Arial", 12))
@@ -175,7 +154,6 @@ class DiskSpaceAnalyzer:
         self.disk_free_label = ttk.Label(disk_frame, text="Free: -", font=("Arial", 12))
         self.disk_free_label.pack(anchor=tk.W, pady=5)
 
-        # Progress bar for disk usage
         ttk.Label(disk_frame, text="Disk Usage:", font=("Arial", 10, "bold")).pack(anchor=tk.W, pady=(10, 5))
         self.disk_usage_bar = ttk.Progressbar(disk_frame, length=400, mode='determinate')
         self.disk_usage_bar.pack(fill=tk.X, pady=5)
@@ -183,35 +161,29 @@ class DiskSpaceAnalyzer:
         self.disk_percent_label = ttk.Label(disk_frame, text="0%", font=("Arial", 11, "bold"))
         self.disk_percent_label.pack(anchor=tk.W)
 
-        # Storage health indicator
         ttk.Label(disk_frame, text="Health Status:", font=("Arial", 10, "bold")).pack(anchor=tk.W, pady=(15, 5))
-        self.health_label = ttk.Label(disk_frame, text="● Excellent",
+        self.health_label = ttk.Label(disk_frame, text="Excellent",
                                       font=("Arial", 12, "bold"), foreground="green")
         self.health_label.pack(anchor=tk.W)
 
-        # Health recommendations
         ttk.Separator(disk_frame, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=15)
 
-        ttk.Label(disk_frame, text="💡 Recommendations:", font=("Arial", 10, "bold")).pack(anchor=tk.W)
+        ttk.Label(disk_frame, text="Recommendations:", font=("Arial", 10, "bold")).pack(anchor=tk.W)
         self.health_recommendations = ttk.Label(disk_frame, text="Disk is healthy",
                                                 font=("Arial", 9), foreground="gray")
         self.health_recommendations.pack(anchor=tk.W, pady=5)
 
-        # Update disk info initially
         self.update_disk_health()
 
     def setup_folder_dashboard_tab(self, parent):
-        """Folder-specific dashboard - Shows scanned folder stats"""
-        # Header
         header_frame = ttk.Frame(parent, padding="15")
         header_frame.pack(fill=tk.X)
 
-        ttk.Label(header_frame, text="📊 Scanned Folder Overview",
+        ttk.Label(header_frame, text="Scanned Folder Overview",
                   font=("Arial", 14, "bold")).pack(anchor=tk.W)
         ttk.Label(header_frame, text="Statistics for the currently scanned folder",
                   font=("Arial", 9), foreground="gray").pack(anchor=tk.W)
 
-        # Current folder info
         folder_info_frame = ttk.Frame(parent, padding="10")
         folder_info_frame.pack(fill=tk.X)
 
@@ -220,12 +192,10 @@ class DiskSpaceAnalyzer:
                                               font=("Arial", 10), foreground="blue")
         self.current_folder_label.pack(anchor=tk.W, pady=5)
 
-        # Main content - Two columns
         content_frame = ttk.Frame(parent, padding="10")
         content_frame.pack(fill=tk.BOTH, expand=True)
 
-        # Left column - Statistics
-        left_frame = ttk.LabelFrame(content_frame, text="📈 Folder Statistics", padding="15")
+        left_frame = ttk.LabelFrame(content_frame, text="Folder Statistics", padding="15")
         left_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5)
 
         self.folder_total_size_label = ttk.Label(left_frame, text="Total Size: -", font=("Arial", 11))
@@ -254,17 +224,16 @@ class DiskSpaceAnalyzer:
         self.folder_large_files_label = ttk.Label(left_frame, text="Large Files (>100MB): -", font=("Arial", 11))
         self.folder_large_files_label.pack(anchor=tk.W, pady=5)
 
-        # Right column - Quick actions
-        right_frame = ttk.LabelFrame(content_frame, text="🎯 Quick Actions", padding="15")
+        right_frame = ttk.LabelFrame(content_frame, text="Quick Actions", padding="15")
         right_frame.pack(side=tk.RIGHT, fill=tk.Y, padx=5)
 
-        ttk.Button(right_frame, text="🔎 Find Duplicates",
+        ttk.Button(right_frame, text="Find Duplicates",
                    command=self.find_duplicates, width=20).pack(fill=tk.X, pady=5)
-        ttk.Button(right_frame, text="⏰ Analyze File Ages",
+        ttk.Button(right_frame, text="Analyze File Ages",
                    command=self.analyze_file_ages, width=20).pack(fill=tk.X, pady=5)
-        ttk.Button(right_frame, text="📦 Find Large Files (>100MB)",
+        ttk.Button(right_frame, text="Find Large Files (>100MB)",
                    command=self.quick_find_large, width=20).pack(fill=tk.X, pady=5)
-        ttk.Button(right_frame, text="📅 Find Old Files (>1yr)",
+        ttk.Button(right_frame, text="Find Old Files (>1yr)",
                    command=self.quick_find_old, width=20).pack(fill=tk.X, pady=5)
 
         ttk.Separator(right_frame, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=15)
@@ -272,44 +241,38 @@ class DiskSpaceAnalyzer:
         ttk.Label(right_frame, text="File Type Breakdown:",
                   font=("Arial", 10, "bold")).pack(anchor=tk.W, pady=(0, 10))
 
-        # Top file types mini-list
         self.top_types_frame = ttk.Frame(right_frame)
         self.top_types_frame.pack(fill=tk.BOTH, expand=True)
 
     def setup_duplicates_tab(self, parent):
-        """Duplicate file finder - UNIQUE FEATURE"""
-        # Header
         header_frame = ttk.Frame(parent, padding="10")
         header_frame.pack(fill=tk.X)
 
-        ttk.Label(header_frame, text="👯 Duplicate File Finder",
+        ttk.Label(header_frame, text="Duplicate File Finder",
                   font=("Arial", 14, "bold")).pack(side=tk.LEFT)
 
-        ttk.Button(header_frame, text="🔎 Find Duplicates", command=self.find_duplicates,
+        ttk.Button(header_frame, text="Find Duplicates", command=self.find_duplicates,
                    width=18).pack(side=tk.RIGHT, padx=5)
 
-        # Info
         info_frame = ttk.Frame(parent, padding="5")
         info_frame.pack(fill=tk.X)
         ttk.Label(info_frame,
-                  text="📌 Each duplicate file is shown separately. Files with the same hash are duplicates of each other.",
+                  text="Each duplicate file is shown separately. Files with the same hash are duplicates of each other.",
                   font=("Arial", 9), foreground="gray").pack()
 
-        # Control buttons
         control_frame = ttk.Frame(parent, padding="5")
         control_frame.pack(fill=tk.X)
 
-        ttk.Button(control_frame, text="🗑️ Delete Selected", command=self.delete_duplicate,
+        ttk.Button(control_frame, text="Delete Selected", command=self.delete_duplicate,
                    width=18).pack(side=tk.LEFT, padx=5)
-        ttk.Button(control_frame, text="📂 Open Location", command=self.open_duplicate_location,
+        ttk.Button(control_frame, text="Open Location", command=self.open_duplicate_location,
                    width=15).pack(side=tk.LEFT, padx=5)
-        ttk.Button(control_frame, text="🗑️ Delete All But First",
+        ttk.Button(control_frame, text="Delete All But First",
                    command=self.delete_duplicates_keep_first, width=20).pack(side=tk.LEFT, padx=5)
 
         self.duplicates_info_label = ttk.Label(control_frame, text="", font=("Arial", 9, "bold"))
         self.duplicates_info_label.pack(side=tk.RIGHT, padx=10)
 
-        # Duplicates table
         table_frame = ttk.Frame(parent)
         table_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
@@ -342,27 +305,24 @@ class DiskSpaceAnalyzer:
         table_frame.grid_columnconfigure(0, weight=1)
 
     def setup_age_tab(self, parent):
-        """File age analysis - UNIQUE FEATURE"""
-        # Header
         header_frame = ttk.Frame(parent, padding="15")
         header_frame.pack(fill=tk.X)
 
-        ttk.Label(header_frame, text="⏰ File Age Analysis",
+        ttk.Label(header_frame, text="File Age Analysis",
                   font=("Arial", 14, "bold")).pack(anchor=tk.W)
         ttk.Label(header_frame, text="Find old files that haven't been modified in months or years",
                   font=("Arial", 9), foreground="gray").pack(anchor=tk.W)
 
-        # Age categories
         content_frame = ttk.Frame(parent, padding="10")
         content_frame.pack(fill=tk.BOTH, expand=True)
 
         categories = [
-            ("🆕 Last 30 days", "30days", "green"),
-            ("📅 1-3 months", "3months", "blue"),
-            ("📆 3-6 months", "6months", "orange"),
-            ("⏳ 6-12 months", "1year", "darkorange"),
-            ("🗓️ 1-2 years", "2years", "red"),
-            ("🏚️ Over 2 years", "old", "darkred"),
+            ("Last 30 days", "30days", "green"),
+            ("1-3 months", "3months", "blue"),
+            ("3-6 months", "6months", "orange"),
+            ("6-12 months", "1year", "darkorange"),
+            ("1-2 years", "2years", "red"),
+            ("Over 2 years", "old", "darkred"),
         ]
 
         for label, key, color in categories:
@@ -378,7 +338,7 @@ class DiskSpaceAnalyzer:
             progress = ttk.Progressbar(frame, length=400, mode='determinate')
             progress.pack(fill=tk.X, pady=5)
 
-            btn = ttk.Button(frame, text=f"📂 View Files",
+            btn = ttk.Button(frame, text=f"View Files",
                              command=lambda k=key, l=label: self.view_age_category(k, l))
             btn.pack(anchor=tk.W)
 
@@ -386,22 +346,20 @@ class DiskSpaceAnalyzer:
             setattr(self, f"{key}_size_label", size_label)
             setattr(self, f"{key}_progress", progress)
 
-        # Analyze button
-        ttk.Button(content_frame, text="🔍 Analyze File Ages", command=self.analyze_file_ages,
+        ttk.Button(content_frame, text="Analyze File Ages", command=self.analyze_file_ages,
                    width=25).pack(pady=15)
 
     def setup_files_tab(self, parent):
         control_frame = ttk.Frame(parent, padding="5")
         control_frame.pack(fill=tk.X)
 
-        ttk.Button(control_frame, text="📁 Move to...", command=self.move_file, width=15).pack(side=tk.LEFT, padx=3)
-        ttk.Button(control_frame, text="📋 Copy to...", command=self.copy_file, width=15).pack(side=tk.LEFT, padx=3)
-        ttk.Button(control_frame, text="🗑️ Delete", command=self.delete_file, width=15).pack(side=tk.LEFT, padx=3)
-        ttk.Button(control_frame, text="📂 Open Folder", command=self.open_file_location, width=15).pack(side=tk.LEFT,
-                                                                                                        padx=3)
-        ttk.Button(control_frame, text="💾 Export List", command=self.export_files, width=15).pack(side=tk.LEFT, padx=3)
+        ttk.Button(control_frame, text="Move to...", command=self.move_file, width=15).pack(side=tk.LEFT, padx=3)
+        ttk.Button(control_frame, text="Copy to...", command=self.copy_file, width=15).pack(side=tk.LEFT, padx=3)
+        ttk.Button(control_frame, text="Delete", command=self.delete_file, width=15).pack(side=tk.LEFT, padx=3)
+        ttk.Button(control_frame, text="Open Folder", command=self.open_file_location, width=15).pack(side=tk.LEFT,
+                                                                                                      padx=3)
+        ttk.Button(control_frame, text="Export List", command=self.export_files, width=15).pack(side=tk.LEFT, padx=3)
 
-        # Files table
         table_frame = ttk.Frame(parent)
         table_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
@@ -435,15 +393,14 @@ class DiskSpaceAnalyzer:
         control_frame = ttk.Frame(parent, padding="5")
         control_frame.pack(fill=tk.X)
 
-        ttk.Button(control_frame, text="📁 Move to...", command=self.move_folder, width=15).pack(side=tk.LEFT, padx=3)
-        ttk.Button(control_frame, text="📋 Copy to...", command=self.copy_folder, width=15).pack(side=tk.LEFT, padx=3)
-        ttk.Button(control_frame, text="🗑️ Delete", command=self.delete_folder, width=15).pack(side=tk.LEFT, padx=3)
-        ttk.Button(control_frame, text="📂 Open Folder", command=self.open_folder_location, width=15).pack(side=tk.LEFT,
-                                                                                                          padx=3)
-        ttk.Button(control_frame, text="🔍 Scan This", command=self.scan_selected_folder, width=15).pack(side=tk.LEFT,
+        ttk.Button(control_frame, text="Move to...", command=self.move_folder, width=15).pack(side=tk.LEFT, padx=3)
+        ttk.Button(control_frame, text="Copy to...", command=self.copy_folder, width=15).pack(side=tk.LEFT, padx=3)
+        ttk.Button(control_frame, text="Delete", command=self.delete_folder, width=15).pack(side=tk.LEFT, padx=3)
+        ttk.Button(control_frame, text="Open Folder", command=self.open_folder_location, width=15).pack(side=tk.LEFT,
                                                                                                         padx=3)
+        ttk.Button(control_frame, text="Scan This", command=self.scan_selected_folder, width=15).pack(side=tk.LEFT,
+                                                                                                      padx=3)
 
-        # Folders table
         table_frame = ttk.Frame(parent)
         table_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
@@ -500,18 +457,17 @@ class DiskSpaceAnalyzer:
         control_frame = ttk.Frame(parent, padding="5")
         control_frame.pack(fill=tk.X)
 
-        ttk.Button(control_frame, text="♻️ Restore Selected", command=self.restore_from_trash, width=18).pack(
+        ttk.Button(control_frame, text="Restore Selected", command=self.restore_from_trash, width=18).pack(
             side=tk.LEFT, padx=5)
-        ttk.Button(control_frame, text="❌ Delete Permanently", command=self.delete_permanently, width=18).pack(
+        ttk.Button(control_frame, text="Delete Permanently", command=self.delete_permanently, width=18).pack(
             side=tk.LEFT, padx=5)
-        ttk.Button(control_frame, text="🗑️ Empty Recycle Bin", command=self.empty_trash, width=18).pack(side=tk.LEFT,
-                                                                                                        padx=5)
-        ttk.Button(control_frame, text="🔄 Refresh", command=self.load_trash, width=12).pack(side=tk.LEFT, padx=5)
+        ttk.Button(control_frame, text="Empty Recycle Bin", command=self.empty_trash, width=18).pack(side=tk.LEFT,
+                                                                                                     padx=5)
+        ttk.Button(control_frame, text="Refresh", command=self.load_trash, width=12).pack(side=tk.LEFT, padx=5)
 
         self.trash_size_label = ttk.Label(control_frame, text="", font=("Arial", 10, "bold"))
         self.trash_size_label.pack(side=tk.RIGHT, padx=10)
 
-        # Trash table
         table_frame = ttk.Frame(parent)
         table_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
@@ -539,19 +495,15 @@ class DiskSpaceAnalyzer:
         table_frame.grid_rowconfigure(0, weight=1)
         table_frame.grid_columnconfigure(0, weight=1)
 
-        # Info label
         info_frame = ttk.Frame(parent, padding="10")
         info_frame.pack(fill=tk.X)
 
-        info_text = "💡 Files moved to Recycle Bin can be restored to their original location or permanently deleted."
+        info_text = "Files moved to Recycle Bin can be restored to their original location or permanently deleted."
         ttk.Label(info_frame, text=info_text, font=("Arial", 9), foreground="gray").pack()
 
         self.load_trash()
 
-    # ========== UNIQUE FEATURES IMPLEMENTATIONS ==========
-
     def update_disk_health(self):
-        """Update overall disk health dashboard"""
         try:
             path = self.current_path
 
@@ -575,42 +527,39 @@ class DiskSpaceAnalyzer:
             used = total - free
             percent_used = (used / total * 100) if total > 0 else 0
 
-            # Update labels
             self.disk_total_label.config(text=f"Total: {self.format_bytes(total)}")
             self.disk_used_label.config(text=f"Used: {self.format_bytes(used)}")
             self.disk_free_label.config(text=f"Free: {self.format_bytes(free)}")
 
-            # Update progress bar
             self.disk_usage_bar['value'] = percent_used
             self.disk_percent_label.config(text=f"{percent_used:.1f}% used")
 
-            # Update health status
             if percent_used > 90:
-                self.health_label.config(text="● Critical", foreground="red")
+                self.health_label.config(text="Critical", foreground="red")
                 self.disk_percent_label.config(foreground="red")
                 self.health_recommendations.config(
-                    text="⚠️ Disk is almost full! Delete unnecessary files immediately.",
+                    text="WARNING: Disk is almost full! Delete unnecessary files immediately.",
                     foreground="red"
                 )
             elif percent_used > 75:
-                self.health_label.config(text="● Warning", foreground="orange")
+                self.health_label.config(text="Warning", foreground="orange")
                 self.disk_percent_label.config(foreground="orange")
                 self.health_recommendations.config(
-                    text="⚠️ Disk space is running low. Consider cleaning up files.",
+                    text="WARNING: Disk space is running low. Consider cleaning up files.",
                     foreground="orange"
                 )
             elif percent_used > 50:
-                self.health_label.config(text="● Good", foreground="blue")
+                self.health_label.config(text="Good", foreground="blue")
                 self.disk_percent_label.config(foreground="blue")
                 self.health_recommendations.config(
-                    text="✓ Disk is healthy. Monitor usage regularly.",
+                    text="Disk is healthy. Monitor usage regularly.",
                     foreground="blue"
                 )
             else:
-                self.health_label.config(text="● Excellent", foreground="green")
+                self.health_label.config(text="Excellent", foreground="green")
                 self.disk_percent_label.config(foreground="green")
                 self.health_recommendations.config(
-                    text="✓ Disk is in excellent condition!",
+                    text="Disk is in excellent condition!",
                     foreground="green"
                 )
 
@@ -618,40 +567,31 @@ class DiskSpaceAnalyzer:
             print(f"Error updating disk health: {e}")
 
     def update_folder_dashboard(self):
-        """Update folder-specific dashboard with scan results"""
         if not self.files_data:
             return
 
-        # Update current folder path
         self.current_folder_label.config(text=self.current_path)
 
-        # Calculate total size
         total_size = sum(f['size'] for f in self.files_data)
         self.folder_total_size_label.config(text=f"Total Size: {self.format_bytes(total_size)}")
 
-        # File count
         self.folder_files_label.config(text=f"Total Files: {len(self.files_data):,}")
 
-        # Folder count
         folder_count = len(self.folders_data) if self.folders_data else 0
         self.folder_folders_label.config(text=f"Total Folders: {folder_count:,}")
 
-        # Largest file
         if self.files_data:
             largest = max(self.files_data, key=lambda x: x['size'])
             self.folder_largest_file_label.config(
                 text=f"Largest File: {self.format_bytes(largest['size'])} ({largest['name'][:30]}...)"
             )
 
-            # Average file size
             avg_size = sum(f['size'] for f in self.files_data) / len(self.files_data)
             self.folder_avg_size_label.config(text=f"Avg File Size: {self.format_bytes(avg_size)}")
 
-        # Count duplicates (if found)
         duplicate_count = len(self.duplicates_data) if self.duplicates_data else 0
         self.folder_duplicates_label.config(text=f"Duplicate Files: {duplicate_count} sets found")
 
-        # Count old files (>1 year)
         now = datetime.now()
         old_files = [f for f in self.files_data if os.path.exists(f['path']) and
                      (now - datetime.fromtimestamp(os.path.getmtime(f['path']))).days > 365]
@@ -660,26 +600,21 @@ class DiskSpaceAnalyzer:
             text=f"Old Files (>1yr): {len(old_files):,} ({self.format_bytes(old_size)})"
         )
 
-        # Count large files (>100MB)
         large_files = [f for f in self.files_data if f['size'] > 100 * 1024 * 1024]
         large_size = sum(f['size'] for f in large_files)
         self.folder_large_files_label.config(
             text=f"Large Files (>100MB): {len(large_files):,} ({self.format_bytes(large_size)})"
         )
 
-        # Update top file types
         self.update_top_file_types()
 
     def update_top_file_types(self):
-        """Update top file types display in folder dashboard"""
-        # Clear existing
         for widget in self.top_types_frame.winfo_children():
             widget.destroy()
 
         if not self.files_data:
             return
 
-        # Count file types
         file_types = {}
         for file_data in self.files_data:
             ext = os.path.splitext(file_data['name'])[1].lower() or 'No Extension'
@@ -688,10 +623,8 @@ class DiskSpaceAnalyzer:
             file_types[ext]['count'] += 1
             file_types[ext]['size'] += file_data['size']
 
-        # Sort by size
         sorted_types = sorted(file_types.items(), key=lambda x: x[1]['size'], reverse=True)
 
-        # Show top 5
         for ext, data in sorted_types[:5]:
             type_frame = ttk.Frame(self.top_types_frame)
             type_frame.pack(fill=tk.X, pady=2)
@@ -701,7 +634,6 @@ class DiskSpaceAnalyzer:
                       font=("Arial", 9)).pack(side=tk.RIGHT)
 
     def find_duplicates(self):
-        """Find duplicate files by content hash"""
         if not self.files_data:
             messagebox.showinfo("No Data", "Please scan a directory first!")
             return
@@ -713,7 +645,6 @@ class DiskSpaceAnalyzer:
         thread.start()
 
     def _find_duplicates_thread(self):
-        """Thread function to find duplicates"""
         try:
             hash_map = defaultdict(list)
 
@@ -721,17 +652,14 @@ class DiskSpaceAnalyzer:
                 try:
                     filepath = file_data['path']
                     if os.path.exists(filepath) and os.path.isfile(filepath):
-                        # Only hash files under 100MB to avoid performance issues
                         if file_data['size'] < 100 * 1024 * 1024:
                             file_hash = self.calculate_file_hash(filepath)
                             hash_map[file_hash].append(file_data)
                 except:
                     pass
 
-            # Find duplicates (hashes with more than one file)
             duplicates = {h: files for h, files in hash_map.items() if len(files) > 1}
 
-            # Update UI
             self.root.after(0, lambda: self.display_duplicates(duplicates))
 
         except Exception as e:
@@ -741,7 +669,6 @@ class DiskSpaceAnalyzer:
             self.root.after(0, lambda: self.status_label.config(text="Duplicate search complete"))
 
     def calculate_file_hash(self, filepath, algorithm='md5'):
-        """Calculate hash of file"""
         hash_obj = hashlib.md5()
 
         with open(filepath, 'rb') as f:
@@ -751,8 +678,6 @@ class DiskSpaceAnalyzer:
         return hash_obj.hexdigest()
 
     def display_duplicates(self, duplicates):
-        """Display found duplicates - each file shown separately"""
-        # Clear tree
         for item in self.duplicates_tree.get_children():
             self.duplicates_tree.delete(item)
 
@@ -767,7 +692,6 @@ class DiskSpaceAnalyzer:
                 total_waste += wasted_space
                 duplicate_count += len(files)
 
-                # Show each duplicate file as a separate row
                 for idx, file_data in enumerate(files):
                     group_indicator = f"Group {group_num} ({idx + 1}/{len(files)})"
 
@@ -780,7 +704,6 @@ class DiskSpaceAnalyzer:
                         self.format_bytes(wasted_space) if idx == 0 else "-"
                     ), tags=(file_hash, file_data['path']))
 
-                # Add separator line
                 self.duplicates_tree.insert('', tk.END, values=(
                     "─" * 10, "─" * 8, "─" * 12, "─" * 15, "─" * 25, "─" * 8
                 ), tags=('separator',))
@@ -794,11 +717,9 @@ class DiskSpaceAnalyzer:
 
         self.duplicates_data = duplicates
 
-        # Update folder dashboard
         self.update_folder_dashboard()
 
     def delete_duplicate(self):
-        """Delete selected duplicate file"""
         selection = self.duplicates_tree.selection()
         if not selection:
             messagebox.showwarning("No Selection", "Please select a duplicate file to delete!")
@@ -806,7 +727,6 @@ class DiskSpaceAnalyzer:
 
         item = self.duplicates_tree.item(selection[0])
 
-        # Skip separator rows
         if 'separator' in self.duplicates_tree.item(selection[0])['tags']:
             messagebox.showinfo("Invalid Selection", "Please select a file, not a separator line.")
             return
@@ -814,29 +734,26 @@ class DiskSpaceAnalyzer:
         filepath = self.duplicates_tree.item(selection[0])['tags'][1]
         filename = item['values'][3]
 
-        # Confirmation dialog with Cancel button
         result = messagebox.askyesnocancel(
             "Confirm Delete",
             f"Move '{filename}' to Recycle Bin?\n\nPath: {filepath}\n\nClick 'Yes' to delete, 'No' to keep, or 'Cancel' to do nothing.",
             icon='warning'
         )
 
-        if result is None:  # Cancel
+        if result is None:
             return
-        elif result:  # Yes - delete
+        elif result:
             if self.move_to_trash(filepath):
                 self.duplicates_tree.delete(selection[0])
                 messagebox.showinfo("Success", f"'{filename}' moved to Recycle Bin!")
                 self.load_trash()
 
     def open_duplicate_location(self):
-        """Open the location of selected duplicate file"""
         selection = self.duplicates_tree.selection()
         if not selection:
             messagebox.showwarning("No Selection", "Please select a duplicate file!")
             return
 
-        # Skip separator rows
         if 'separator' in self.duplicates_tree.item(selection[0])['tags']:
             messagebox.showinfo("Invalid Selection", "Please select a file, not a separator line.")
             return
@@ -853,12 +770,10 @@ class DiskSpaceAnalyzer:
             messagebox.showerror("Error", f"Failed to open folder: {str(e)}")
 
     def delete_duplicates_keep_first(self):
-        """Delete all duplicates in each group except the first one"""
         if not self.duplicates_data:
             messagebox.showinfo("No Duplicates", "No duplicate groups found. Run 'Find Duplicates' first!")
             return
 
-        # Count how many files would be deleted
         total_to_delete = sum(len(files) - 1 for files in self.duplicates_data.values())
 
         result = messagebox.askyesnocancel(
@@ -869,23 +784,20 @@ class DiskSpaceAnalyzer:
             icon='warning'
         )
 
-        if result is None:  # Cancel
+        if result is None:
             return
-        elif result:  # Yes - proceed
+        elif result:
             deleted_count = 0
             for file_hash, files in self.duplicates_data.items():
-                # Keep first file, delete rest
                 for file_data in files[1:]:
                     if self.move_to_trash(file_data['path']):
                         deleted_count += 1
 
             messagebox.showinfo("Complete", f"Moved {deleted_count} duplicate files to Recycle Bin!")
             self.load_trash()
-            # Refresh duplicate list
             self.find_duplicates()
 
     def analyze_file_ages(self):
-        """Analyze files by age"""
         if not self.files_data:
             messagebox.showinfo("No Data", "Please scan a directory first!")
             return
@@ -922,7 +834,6 @@ class DiskSpaceAnalyzer:
             except:
                 pass
 
-        # Update UI
         total_files = len(self.files_data)
         for key, files in self.age_categories_data.items():
             count = len(files)
@@ -935,11 +846,9 @@ class DiskSpaceAnalyzer:
 
         messagebox.showinfo("Complete", "File age analysis complete! Click 'View Files' buttons to see details.")
 
-        # Update folder dashboard
         self.update_folder_dashboard()
 
     def view_age_category(self, category, label):
-        """View files in a specific age category"""
         if category not in self.age_categories_data or not self.age_categories_data[category]:
             messagebox.showinfo("No Data",
                                 f"No files found in category: {label}\n\nPlease run 'Analyze File Ages' first!")
@@ -947,22 +856,19 @@ class DiskSpaceAnalyzer:
 
         files = self.age_categories_data[category]
 
-        # Create popup window
         popup = tk.Toplevel(self.root)
         popup.title(f"Files - {label}")
         popup.geometry("900x600")
 
-        # Header
         header_frame = ttk.Frame(popup, padding="10")
         header_frame.pack(fill=tk.X)
 
-        ttk.Label(header_frame, text=f"📂 {label}",
+        ttk.Label(header_frame, text=f"{label}",
                   font=("Arial", 14, "bold")).pack(side=tk.LEFT)
 
         ttk.Label(header_frame, text=f"{len(files)} files | {self.format_bytes(sum(f['size'] for f in files))}",
                   font=("Arial", 10)).pack(side=tk.RIGHT)
 
-        # Files table
         table_frame = ttk.Frame(popup, padding="10")
         table_frame.pack(fill=tk.BOTH, expand=True)
 
@@ -990,7 +896,6 @@ class DiskSpaceAnalyzer:
         table_frame.grid_rowconfigure(0, weight=1)
         table_frame.grid_columnconfigure(0, weight=1)
 
-        # Populate table
         for file_data in sorted(files, key=lambda x: x['size'], reverse=True):
             tree.insert('', tk.END, values=(
                 self.format_bytes(file_data['size']),
@@ -999,14 +904,12 @@ class DiskSpaceAnalyzer:
                 file_data['modified']
             ))
 
-        # Close button
         btn_frame = ttk.Frame(popup, padding="10")
         btn_frame.pack(fill=tk.X)
 
         ttk.Button(btn_frame, text="Close", command=popup.destroy, width=15).pack(side=tk.RIGHT)
 
     def quick_find_large(self):
-        """Quick action: Find files larger than 100MB"""
         if self.files_data:
             large_files = [f for f in self.files_data if f['size'] > 100 * 1024 * 1024]
             messagebox.showinfo("Large Files",
@@ -1014,7 +917,6 @@ class DiskSpaceAnalyzer:
                                 f"Total size: {self.format_bytes(sum(f['size'] for f in large_files))}")
 
     def quick_find_old(self):
-        """Quick action: Find files older than 1 year"""
         if self.files_data:
             now = datetime.now()
             old_files = [f for f in self.files_data if os.path.exists(f['path']) and
@@ -1023,8 +925,6 @@ class DiskSpaceAnalyzer:
             messagebox.showinfo("Old Files",
                                 f"Found {len(old_files)} files older than 1 year\n"
                                 f"Total size: {self.format_bytes(old_size)}")
-
-    # ========== EXISTING FEATURES ==========
 
     def ensure_trash_folder(self):
         if not os.path.exists(self.trash_folder):
@@ -1148,19 +1048,18 @@ class DiskSpaceAnalyzer:
         self.status_label.config(text="Scan stopped")
 
     def scan_directory(self, path):
+        """Fixed scan_directory with proper folder size calculation"""
         total_size = 0
         file_count = 0
-        folder_count = 0
         file_types = {}
-        folder_sizes = {}
+        all_folders = set()
 
         try:
             for root, dirs, files in os.walk(path):
                 if not self.scanning:
                     break
-                folder_count += len(dirs)
-                folder_size = 0
-                folder_file_count = 0
+
+                all_folders.add(root)
 
                 for filename in files:
                     if not self.scanning:
@@ -1172,8 +1071,6 @@ class DiskSpaceAnalyzer:
 
                         total_size += size
                         file_count += 1
-                        folder_size += size
-                        folder_file_count += 1
 
                         self.files_data.append({
                             'size': size,
@@ -1194,15 +1091,49 @@ class DiskSpaceAnalyzer:
                     except (PermissionError, FileNotFoundError):
                         pass
 
-                if folder_size > 0:
-                    folder_sizes[root] = {
-                        'size': folder_size,
-                        'files': folder_file_count
-                    }
+            if self.scanning:
+                folder_sizes = self.calculate_folder_sizes(path, all_folders)
+                folder_count = len(all_folders)
+            else:
+                folder_sizes = {}
+                folder_count = 0
+
         except Exception as e:
             self.root.after(0, lambda: messagebox.showerror("Scan Error", f"Error: {str(e)}"))
+            folder_sizes = {}
+            folder_count = 0
 
         self.root.after(0, lambda: self.display_results(total_size, file_count, folder_count, file_types, folder_sizes))
+
+    def calculate_folder_sizes(self, base_path, all_folders):
+        """Calculate total size for each folder including subdirectories"""
+        folder_sizes = {}
+        folder_file_counts = defaultdict(int)
+
+        for file_data in self.files_data:
+            filepath = file_data['path']
+            size = file_data['size']
+            current_dir = os.path.dirname(filepath)
+
+            while current_dir in all_folders and current_dir.startswith(base_path):
+                if current_dir not in folder_sizes:
+                    folder_sizes[current_dir] = 0
+                folder_sizes[current_dir] += size
+                folder_file_counts[current_dir] += 1
+
+                parent = os.path.dirname(current_dir)
+                if parent == current_dir:
+                    break
+                current_dir = parent
+
+        result = {}
+        for folder_path in all_folders:
+            result[folder_path] = {
+                'size': folder_sizes.get(folder_path, 0),
+                'files': folder_file_counts.get(folder_path, 0)
+            }
+
+        return result
 
     def display_results(self, total_size, file_count, folder_count, file_types, folder_sizes):
         self.files_data.sort(key=lambda x: x['size'], reverse=True)
@@ -1258,7 +1189,6 @@ class DiskSpaceAnalyzer:
         self.stop_scan()
         self.status_label.config(text=f"Scan complete! Found {file_count:,} files")
 
-        # Update dashboards
         self.update_disk_health()
         self.update_folder_dashboard()
 
@@ -1390,16 +1320,15 @@ class DiskSpaceAnalyzer:
         filepath = item['values'][2]
         filename = item['values'][1]
 
-        # Use askyesnocancel for explicit Cancel option
         result = messagebox.askyesnocancel(
             "Move to Recycle Bin",
             f"Move this file to Recycle Bin?\n\n{filename}\n\nClick 'Yes' to delete, 'No' to keep, or 'Cancel'.",
             icon='warning'
         )
 
-        if result is None:  # Cancel
+        if result is None:
             return
-        elif result:  # Yes - delete
+        elif result:
             if self.move_to_trash(filepath):
                 self.files_tree.delete(selection[0])
                 messagebox.showinfo("Success", f"'{filename}' moved to Recycle Bin!")
@@ -1415,16 +1344,15 @@ class DiskSpaceAnalyzer:
         foldername = item['values'][1]
         file_count = item['values'][3]
 
-        # Use askyesnocancel for explicit Cancel option
         result = messagebox.askyesnocancel(
             "Move to Recycle Bin",
             f"Move this folder to Recycle Bin?\n\n{foldername}\n\nContains {file_count} files\n\nClick 'Yes' to delete, 'No' to keep, or 'Cancel'.",
             icon='warning'
         )
 
-        if result is None:  # Cancel
+        if result is None:
             return
-        elif result:  # Yes - delete
+        elif result:
             if self.move_to_trash(folder):
                 self.folders_tree.delete(selection[0])
                 messagebox.showinfo("Success", f"'{foldername}' moved to Recycle Bin!")
@@ -1487,7 +1415,7 @@ class DiskSpaceAnalyzer:
             icon='question'
         )
 
-        if result is None or not result:  # Cancel or No
+        if result is None or not result:
             return
 
         try:
@@ -1527,13 +1455,13 @@ class DiskSpaceAnalyzer:
 
         result = messagebox.askyesnocancel(
             "Permanent Delete",
-            f"⚠️ PERMANENTLY delete '{name}'?\n\nThis CANNOT be undone!\n\nClick 'Yes' to delete permanently, 'No' to keep in Recycle Bin, or 'Cancel'.",
+            f"WARNING: PERMANENTLY delete '{name}'?\n\nThis CANNOT be undone!\n\nClick 'Yes' to delete permanently, 'No' to keep in Recycle Bin, or 'Cancel'.",
             icon='warning'
         )
 
-        if result is None:  # Cancel
+        if result is None:
             return
-        elif result:  # Yes - delete
+        elif result:
             try:
                 trash_path = os.path.join(self.trash_folder, trash_id)
                 if os.path.isdir(trash_path):
@@ -1557,13 +1485,13 @@ class DiskSpaceAnalyzer:
 
         result = messagebox.askyesnocancel(
             "Empty Recycle Bin",
-            f"⚠️ PERMANENTLY delete ALL {item_count} items?\n\nThis CANNOT be undone!\n\nClick 'Yes' to empty, 'No' to keep, or 'Cancel'.",
+            f"WARNING: PERMANENTLY delete ALL {item_count} items?\n\nThis CANNOT be undone!\n\nClick 'Yes' to empty, 'No' to keep, or 'Cancel'.",
             icon='warning'
         )
 
-        if result is None:  # Cancel
+        if result is None:
             return
-        elif result:  # Yes - empty
+        elif result:
             try:
                 for trash_id in list(metadata.keys()):
                     trash_path = os.path.join(self.trash_folder, trash_id)
